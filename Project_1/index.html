@@ -36,8 +36,23 @@
     #worldMap {
         width:100%;
         display: inline-block;
-        position: relative;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+    #countryOptions{
+        height: 250px;
+        width: 35%;
         float: right;
+        border-style: solid;
+        border-color: #CCCCCC;
+        overflow-y: scroll;
+        margin: 0px 5px 5px 0px;
+    }
+    #timeSelection{
+        float: left;
+        width: 50%;
+        margin: 0 auto;
     }
 
 </style>
@@ -45,6 +60,33 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script src="http://datamaps.github.io/scripts/datamaps.world.min.js?v=1"></script>
+<div id="countryOptions">
+    <h1>US Weapon Imports & Exports</h1>
+    <h4>Country Selection</h4>
+    <div>
+        <input type="checkbox" id="all" name="countrySelection" onclick=selectAll(this)> Select All<br>
+    </div>
+    <div id="timeSelection">
+        <h4>Time Selection</h4>
+        <table>
+            <tr>
+                <td>
+                    From: &ensp;
+                </td>
+                <td>
+                    <select id="fromYear" class="yearSelector"></select>
+                </td>
+            </tr>
+           <tr>
+               <td>To: &emsp;&ensp;</td>
+               <td>
+                   <select id="toYear" class="yearSelector"></select>
+               </td>
+
+           </tr>
+        </table>
+    </div>
+</div>
 <div id="worldMap" style="position:   center; width: 35%; max-height: 300px;"></div>
 
 
@@ -63,6 +105,17 @@
 
     });
     //map.display();
+
+    var fromYear = d3.select("#fromYear");
+    var toYear = d3.select("#toYear");
+    for (var i = 1962;i <= 2017; i++){
+        fromYear.append("option")
+            .attr("Value", i)
+            .text(i);
+        toYear.append("option")
+            .attr("value", i)
+            .text(i);
+    }
 
 </script>
 </body>

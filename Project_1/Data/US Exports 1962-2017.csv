@@ -1,4 +1,4 @@
-﻿Partner_Name,ImportOrExport,Year,Weapons_Type,Units,Value,SmallArmsOnly
+﻿Country,ImportOrExport,Year,Weapons_Type,Units,Value,SmallArmsOnly
 Afghanistan,Export,1962,Non-Military Firearms (89431),18,683,Yes
 Africa,Export,1962,Non-Military Firearms (89431),6,773,Yes
 All Countries,Export,1962,Non-Military Firearms (89431),123689,4076435,Yes

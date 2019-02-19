@@ -41,9 +41,8 @@
         margin: 0px 5px 5px 0px;
     }
     #options{
-        height: 300px;
+        height: 331px;
         width: 35%;
-        float: right;
         border-style: solid;
         border-color: #CCCCCC;
         overflow-y: scroll;
@@ -80,14 +79,22 @@
         opacity: 0.9;
         position: absolute;
     }
+    charts{
+        float: left;
+        width: 100%;
+        height: 100%;
+        margin: 0px 0px 0px 0.6%;
+        padding: 10px;
+        border-style: double;
+        border-color: #222222;
+        overflow-y: scroll;
+    }
 
 </style>
 <body>
-<!---<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/topojson.v1.min.js"></script>
-<script src="http://datamaps.github.io/scripts/datamaps.world.min.js?v=1"></script>-->
+<div id="charts"></div>
 <div id="options">
-    <h1>US Weapon Imports & Exports</h1>
+    <h1>US Weapons: Imports & Exports (1962-2017)</h1>
     <h4>Country Selection</h4>
     <div id ="countryOptions">
         <input type="checkbox" id="all" name="countrySelection" onclick=selectAll(this)> Select All<br>
@@ -117,9 +124,9 @@
 <div class="tooltip"></div>
 
 <script>
-    var fromYear = d3.select("#fromYear");
-    var toYear = d3.select("#toYear");
-    for (var i = 1962;i <= 2017; i++){
+    let fromYear = d3.select("#fromYear");
+    let toYear = d3.select("#toYear");
+    for (let i = 1962;i <= 2017; i++){
         fromYear.append("option")
             .attr("Value", i)
             .text(i);
@@ -128,19 +135,19 @@
             .text(i);
     }
 
-    var margin = {top: 10, right: 10, bottom: 10, left: 10};
-    var width = 500- margin.left - margin.right;
-    var height = 300 - margin.top - margin.bottom;
-    var worldMap = d3.geoMercator()
+    let margin = {top: 10, right: 10, bottom: 10, left: 10};
+    let width = 500- margin.left - margin.right;
+    let height = 300 - margin.top - margin.bottom;
+    let worldMap = d3.geoMercator()
         .center([0,15])
-        .translate([300,215])
+        .translate([260,215]) // Move map left/right and up/down [300,215]
         .scale([500/(2*Math.PI)]);
 
-    var tooltip = d3.select("div.tooltip");
-    var path = d3.geoPath()
+    let tooltip = d3.select("div.tooltip");
+    let path = d3.geoPath()
         .projection(worldMap);
 
-    var mapSvg = d3.select("svg")
+    let mapSvg = d3.select("svg")
         .append("g")
         .attr("width", width)
         .attr("height", height);
@@ -151,8 +158,8 @@
         .await(ready);
     function ready(error, world, names) {
         if (error) throw error;
-        var countries1 = topojson.feature(world, world.objects.countries).features;
-        countries = countries1.filter(function(d) {
+        let countries1 = topojson.feature(world, world.objects.countries).features;
+        let countries = countries1.filter(function(d) {
             return names.some(function(n) {
                 if (d.id == n.id) return d.name = n.name;
             })});
@@ -179,13 +186,68 @@
                 tooltip.classed("hidden", true);
             });
     }
+    let charts_margin = {top:30, right:20, bottom:30, left:50};
+    let w_charts = $("#charts").width() * 0.95 - charts_margin.left - charts_margin.right;
+    let h_charts = 150 - charts_margin.bottom - charts_margin.top;
+    let svgHeight = h_charts + charts_margin.top + charts_margin.bottom;
+    let svgWidth = w_charts + charts_margin.left + charts_margin.right;
+
+    let parseYear = d3.time.format("%Y").parse;
+
+    let x = d3.time.scale().range([0,w_charts]);
+    let y = d3.scale().linear().range([h_charts,0]);
+
+    let xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(7).tickFormat(d3.time.format("'%y"));
+    let yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+
+    let valLine = d3.svg.line()
+        .x(function (d) {
+            return x(d.date);
+        })
+        .y(function (d) {
+            return y(d.Value);
+        });
+
+    let zeroLine = d3.svg.line()
+        .x(function (d) {
+            return x(d.date);
+        })
+        .y(y(0));
+
+    let valArea = d3.svg.area()
+        .x(function (d) {
+            return x(d.date);
+        })
+        .y1(function (d) {
+            return y(d.date);
+        });
+
+    let zeroArea = d3.svg.area()
+        .x(function (d) {
+            return x(d.date);
+        })
+        .y0(y(0))
+        .y1(y(0));
+
+    let bisectYear = d3.bisector(function (d) { return d.date;}).left;
+
+
     d3.queue()
         .defer(d3.csv, "US Exports 1962-2017.csv")
         .defer(d3.csv, "US Imports 1962-2017.csv")
         .await(readyData);
     function readyData(error, data) {
-        dataAllCountries = {};
+        let dataAllCountries = {};
         if (error) throw error;
+
+        data.forEach(function (d) {
+            if (!dataAllCountries[d.Country]){
+                dataAllCountries[d.Country] = [];
+            }
+            d.date = parseYear(d.year);
+            d.Value = +d.Value;
+            dataAllCountries[d.Country].push(d);
+        });
 
 
     }

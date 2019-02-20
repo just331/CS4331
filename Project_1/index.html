@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
@@ -79,7 +80,7 @@
         opacity: 0.9;
         position: absolute;
     }
-    charts{
+    #charts{
         float: left;
         width: 100%;
         height: 100%;
@@ -89,7 +90,6 @@
         border-color: #222222;
         overflow-y: scroll;
     }
-
 </style>
 <body>
 <div id="charts"></div>
@@ -186,6 +186,15 @@
                 tooltip.classed("hidden", true);
             });
     }
+
+    function selectAll(_this){
+        let checkboxes = document.getElementsByName(_this.name);
+        for (let i =0, n = checkboxes.length; i<n;i++){
+            if(checkboxes[i].checked != _this.checked){
+                changeChart(checkboxes[i].id);
+            }
+        }
+    }
     let charts_margin = {top:30, right:20, bottom:30, left:50};
     let w_charts = $("#charts").width() * 0.95 - charts_margin.left - charts_margin.right;
     let h_charts = 150 - charts_margin.bottom - charts_margin.top;
@@ -205,7 +214,7 @@
             return x(d.date);
         })
         .y(function (d) {
-            return y(d.Value);
+            return y(d.value);
         });
 
     let zeroLine = d3.svg.line()
@@ -232,25 +241,69 @@
     let bisectYear = d3.bisector(function (d) { return d.date;}).left;
 
 
-    d3.queue()
-        .defer(d3.csv, "US Exports 1962-2017.csv")
-        .defer(d3.csv, "US Imports 1962-2017.csv")
-        .await(readyData);
-    function readyData(error, data) {
+    /*d3.queue()
+        .defer(d3.csv, "../Data/US Exports 1962-2017.csv")
+        .defer(d3.csv, "../Data/US Imports 1962-2017.csv")
+        .await(readyData);*/
+    //function readyData(error, data) {
+    d3.csv("../Data/US_Exports_1962-2017.csv", function (error, data) {
         let dataAllCountries = {};
         if (error) throw error;
 
         data.forEach(function (d) {
-            if (!dataAllCountries[d.Country]){
-                dataAllCountries[d.Country] = [];
+            if (!dataAllCountries[d.country]){
+                dataAllCountries[d.country] = [];
             }
-            d.date = parseYear(d.year);
-            d.Value = +d.Value;
-            dataAllCountries[d.Country].push(d);
+            d.date = d3.timeParse('%Y')(d.date);
+            d.value = +d.value;
+            dataAllCountries[d.country].push(d);
         });
+        console.log(dataAllCountries);
+        for(let country in dataAllCountries){
+            dataAllCountries[country].sort(function(a,b) {
+                if (a.date < b.date){
+                    return -1;
+                }else if (a.date > b.date){
+                    return 1;
+                } else{
+                    return 0;
+                }
+            });
+        }
+
+        let countryChartData = [];
+        for (let country in dataAllCountries){
+            let d = {};
+            d.country = country;
+            d.series = dataAllCountries;
+            countryChartData.push(d);
+        }
+
+        let countryOptions = d3.select("#countryOptions");
+
+        countryChartData.forEach(function (d) {
+            let options = countryOptions
+                .append("label")
+                .datum(d.country);
+            options.append("input")
+                .attr("type", "checkbox")
+                .property("checked", function (d) {
+                    return (d== "Afghanistan" || d == "All Countries")
+                })
+                .attr("names",  "countrySelection");
+            //.attr("id", removeWhiteSpace)
+            //.on("click", changeChart);
+            options.append("text")
+                .text(d.country);
+            options.append("br");
+        });
+    });
 
 
-    }
+    //}
+
+
+
 
 </script>
 </body>

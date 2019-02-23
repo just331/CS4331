@@ -194,19 +194,23 @@
             }
         }
     }
+
+
     let charts_margin = {top:30, right:20, bottom:30, left:50};
     let w_charts = $("#charts").width() * 0.95 - charts_margin.left - charts_margin.right;
     let h_charts = 150 - charts_margin.bottom - charts_margin.top;
     let svgHeight = h_charts + charts_margin.top + charts_margin.bottom;
     let svgWidth = w_charts + charts_margin.left + charts_margin.right;
 
-    /*let x = d3.time.scale().range([0,w_charts]);
-    let y = d3.scale().linear().range([h_charts,0]);*/
+    let x = d3.scaleTime().range([0,w_charts]);
+    let y = d3.scaleLinear().range([h_charts,0]);
 
+    let xAxis = d3.axisBottom(x).ticks(7).tickFormat(d3.timeFormat("'Y"));
+    let yAxis = d3.axisLeft(y).ticks(5);
     /*let xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(7).tickFormat(d3.time.format("'%y"));
-    let yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);*/
-/*
-    let valLine = d3.svg.line()
+    let yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+    */
+    let valLine = d3.line()
         .x(function (d) {
             return x(d.date);
         })
@@ -214,13 +218,13 @@
             return y(d.value);
         });
 
-    let zeroLine = d3.svg.line()
+    let zeroLine = d3.line()
         .x(function (d) {
             return x(d.date);
         })
         .y(y(0));
 
-    let valArea = d3.svg.area()
+    let valArea = d3.area()
         .x(function (d) {
             return x(d.date);
         })
@@ -228,7 +232,7 @@
             return y(d.date);
         });
 
-    let zeroArea = d3.svg.area()
+    let zeroArea = d3.area()
         .x(function (d) {
             return x(d.date);
         })
@@ -236,20 +240,20 @@
         .y1(y(0));
 
     let bisectYear = d3.bisector(function (d) { return d.date;}).left;
-    */
     /*d3.queue()
         .defer(d3.csv, "../Data/US Exports 1962-2017.csv")
         .defer(d3.csv, "../Data/US Imports 1962-2017.csv")
         .await(readyData);*/
     //function readyData(error, data) {
+
     d3.csv("US_Exports_1962-2017.csv", function (error, data) {
-        let dataAllCountries = {};
+        dataAllCountries = {};
         if (error) throw error;
         data.forEach(function (d) {
             if (!dataAllCountries[d.country]){
                 dataAllCountries[d.country] = [];
             }
-            d.date = d3.timeParse('%Y')(d.date);
+            d.date = d3.timeParse('%Y')(d.year);
             d.value = +d.value;
             d.units = +d.units;
             dataAllCountries[d.country].push(d);
@@ -292,7 +296,13 @@
                 .text(d.country);
             options.append("br");
         });
+
+
+
+        x.domain(d3.extent(data, function (d) { return d.date;}));
+        y.domain(d3.extent(data, function (d) { return d.value;}));
     });
+
 
 
     //}

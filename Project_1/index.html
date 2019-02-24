@@ -66,10 +66,26 @@
         border-style: solid;
         border-color: #CCC;
     }
+
+    svg2{
+        font:10px sans-serif;
+        shape-rendering: crispEdges;
+    }
+    .axis path,
+    .axis line{
+        fill:none;
+        stroke: #000000;
+    }
+    .path.domain{
+        stroke: none;
+    }
+    .y .tick line{
+        stroke: #dddddd;
+    }
     .hidden {
         display: none;
     }
-    div.tooltip {
+    div.tooltip1 {
         color: #222;
         background: #fff;
         border-radius: 3px;
@@ -120,7 +136,7 @@
     </div>
 </div>
 <svg width="600" height="300"></svg>
-<div class="tooltip"></div>
+<div class="tooltip1"></div>
 
 <script>
     let margin = {top: 10, right: 10, bottom: 10, left: 10};
@@ -131,7 +147,7 @@
         .translate([260,215]) // Move map left/right and up/down [300,215]
         .scale([500/(2*Math.PI)]);
 
-    let tooltip = d3.select("div.tooltip");
+    let tooltip1 = d3.select("div.tooltip1");
     let path = d3.geoPath()
         .projection(worldMap);
 
@@ -164,14 +180,14 @@
                 return tooltip.style("hidden", false).html(d.name);
             })
             .on("mousemove",function(d){
-                tooltip.classed("hidden", false)
+                tooltip1.classed("hidden", false)
                     .style("top", (d3.event.pageY) + "px")
                     .style("left", (d3.event.pageX + 10) + "px")
                     .html(d.name);
             })
             .on("mouseout",function(d,i){
                 d3.select(this).attr("fill","white").attr("stroke-width",1);
-                tooltip.classed("hidden", true);
+                tooltip1.classed("hidden", true);
             });
     }
 
@@ -299,6 +315,112 @@
 
         x.domain(d3.extent(data, function (d) { return d.date;}));
         y.domain(d3.extent(data, function (d) { return d.value;}));
+
+        let marginBar = {top:20, right:160, bottom:35, left:30};
+        const widthBar = 960 - marginBar.left - marginBar.right;
+        const heightBar = 500 - marginBar.top - marginBar.bottom;
+
+        let svg2 = d3.select("body")
+            .append("svg2")
+            .attr("width", widthBar + marginBar.left + marginBar.right)
+            .attr("height", heightBar + marginBar.top + marginBar.bottom)
+            .append("g")
+            .attr("transform", "translate(" + marginBar.left + "," + marginBar.top + ")");
+
+        let dataset = d3.stack()(dataAllCountries[d.country]).map(function(countryBar){
+            return dataAllCountries.map(function(d){
+                return {x: d.year, y: +d[countryBar]};
+            });
+        });
+
+        let xBar = d3.scaleOrdinal()
+            .domain(dataset[0].map(function(d){ return d.x}))
+            .rangeRoundBands([10, width-10], 0.02);
+
+        let yBar = d3.scaleLinear()
+            .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+            .range([heightBar, 0]);
+
+        let colors = d3.scaleOrdinal(d3.schemeCategory20);
+
+        let yAxisBar = d3.axisLeft(yBar)
+            .ticks(5)
+            .tickSize(-widthBar, 0, 0)
+            .tickFormat(function (d) { return d});
+
+        let xAxisBar = d3.axisBottom(xBar)
+            .tickFormat(function(d){ return d});
+
+        svg2.append("g")
+            .attr("class", "y axis")
+            .call(yAxisBar);
+
+        svg2.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + heightBar + ")")
+            .call(xAxisBar);
+
+        let groups = svg2.selectAll("g.cost")
+            .data(dataset)
+            .enter().append("g")
+            .attr("class", "cost")
+            .style("fill", function (d, i) {
+                return colors[i];
+            });
+
+        let rect = groups.selectAll("rect")
+            .data(function(d){ return d;})
+            .enter()
+            .append("rect")
+            .attr("x", function(d){ return x(d.x);})
+            .attr("y", function(d){ return y(d.y0 + d.y);})
+            .attr("height", function(d){ return y(d.y0) - y(d.y0 + d.y);})
+            .attr("width", x.rangeBand())
+            .on("mouseover", function(){ tooltip.style("display", null);})
+            .on("mouseout", function () { tooltip.style("display", "none");})
+            .on("mousemove", function(d){
+                let xPosition = d3.mouse(this)[0] - 15;
+                let yPosition = d3.mouse(this)[1] - 25;
+                tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                toottip.select("text").text(d.y);
+            });
+
+        let legend = svg2.selectAll(".legend")
+            .data(colors)
+            .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", function(d,i){ return "translate(30," + i * 19 + ")";});
+
+        legend.append("rect")
+            .attr("x", widthBar - 18)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", function(d, i){return colors.step().reverse()[i];});
+
+        legend.append("text")
+            .attr("x", widthBar + 5)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(d => d);
+
+        // Prep the tooltip bits, initial display is hidden
+        var tooltip = svg.append("g")
+            .attr("class", "tooltip")
+            .style("display", "none");
+
+        tooltip.append("rect")
+            .attr("width", 30)
+            .attr("height", 20)
+            .attr("fill", "white")
+            .style("opacity", 0.5);
+
+        tooltip.append("text")
+            .attr("x", 15)
+            .attr("dy", "1.2em")
+            .style("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("font-weight", "bold");
     });
 
 

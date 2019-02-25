@@ -66,7 +66,6 @@
         border-style: solid;
         border-color: #CCC;
     }
-
     svg2{
         font:10px sans-serif;
         shape-rendering: crispEdges;
@@ -81,6 +80,9 @@
     }
     .y .tick line{
         stroke: #dddddd;
+    }
+    .bar{
+        fill: steelblue;
     }
     .hidden {
         display: none;
@@ -107,6 +109,10 @@
     }
 </style>
 <body>
+<div id="stackedbars">
+    <h1>Segments</h1>
+    <svg id="stacked" width="600" height="500"></svg>
+</div>
 <div id="charts"></div>
 <div id="options">
     <h1>US Weapons: Imports & Exports (1962-2017)</h1>
@@ -125,37 +131,35 @@
                     <select id="fromYear" class="yearSelector"></select>
                 </td>
             </tr>
-           <tr>
-               <td>To: &emsp;&ensp;</td>
-               <td>
-                   <select id="toYear" class="yearSelector"></select>
-               </td>
+            <tr>
+                <td>To: &emsp;&ensp;</td>
+                <td>
+                    <select id="toYear" class="yearSelector"></select>
+                </td>
 
-           </tr>
+            </tr>
         </table>
     </div>
 </div>
-<svg width="600" height="300"></svg>
+<svg id="worldMap" width="600" height="300"></svg>
 <div class="tooltip1"></div>
 
+
 <script>
-    let margin = {top: 10, right: 10, bottom: 10, left: 10};
-    let width = 500- margin.left - margin.right;
-    let height = 300 - margin.top - margin.bottom;
+    let marginMap = {top: 10, right: 10, bottom: 10, left: 10};
+    let widthMap = 500- marginMap.left - marginMap.right;
+    let heightMap = 300 - marginMap.top - marginMap.bottom;
     let worldMap = d3.geoMercator()
         .center([0,15])
         .translate([260,215]) // Move map left/right and up/down [300,215]
         .scale([500/(2*Math.PI)]);
-
     let tooltip1 = d3.select("div.tooltip1");
     let path = d3.geoPath()
         .projection(worldMap);
-
-    let mapSvg = d3.select("svg")
+    let mapSvg = d3.select("#worldMap")
         .append("g")
-        .attr("width", width)
-        .attr("height", height);
-
+        .attr("width", widthMap)
+        .attr("height", heightMap);
     d3.queue()
         .defer(d3.json, "world-110m.json")
         .defer(d3.csv, "world-country-names.csv")
@@ -177,7 +181,7 @@
             .attr("d", path )
             .on("mouseover",function(d,i){
                 d3.select(this).attr("fill","grey").attr("stroke-width",2);
-                return tooltip.style("hidden", false).html(d.name);
+                return tooltip1.style("hidden", false).html(d.name);
             })
             .on("mousemove",function(d){
                 tooltip1.classed("hidden", false)
@@ -190,7 +194,6 @@
                 tooltip1.classed("hidden", true);
             });
     }
-
     let fromYear = d3.select("#fromYear");
     let toYear = d3.select("#toYear");
     for (let i = 1962;i <= 2017; i++){
@@ -201,7 +204,6 @@
             .attr("value", i)
             .text(i);
     }
-
     function selectAll(_this){
         let checkboxes = document.getElementsByName(_this.name);
         for (let i =0, n = checkboxes.length; i<n;i++){
@@ -210,20 +212,15 @@
             }
         }
     }
-
-
-    let charts_margin = {top:30, right:20, bottom:30, left:50};
+    /*let charts_margin = {top:30, right:20, bottom:30, left:50};
     let w_charts = $("#charts").width() * 0.95 - charts_margin.left - charts_margin.right;
     let h_charts = 150 - charts_margin.bottom - charts_margin.top;
     let svgHeight = h_charts + charts_margin.top + charts_margin.bottom;
     let svgWidth = w_charts + charts_margin.left + charts_margin.right;
-
     let x = d3.scaleTime().range([0,w_charts]);
     let y = d3.scaleLinear().range([h_charts,0]);
-
     let xAxis = d3.axisBottom(x).ticks(7).tickFormat(d3.timeFormat("'Y"));
     let yAxis = d3.axisLeft(y).ticks(5);
-
     let valLine = d3.line()
         .x(function (d) {
             return x(d.date);
@@ -231,13 +228,11 @@
         .y(function (d) {
             return y(d.value);
         });
-
     let zeroLine = d3.line()
         .x(function (d) {
             return x(d.date);
         })
         .y(y(0));
-
     let valArea = d3.area()
         .x(function (d) {
             return x(d.date);
@@ -245,20 +240,37 @@
         .y1(function (d) {
             return y(d.date);
         });
-
     let zeroArea = d3.area()
         .x(function (d) {
             return x(d.date);
         })
         .y0(y(0))
-        .y1(y(0));
-
-    let bisectYear = d3.bisector(function (d) { return d.date;}).left;
+        .y1(y(0));*/
+    //let bisectYear = d3.bisector(function (d) { return d.date;}).left;
     /*d3.queue()
         .defer(d3.csv, "../Data/US Exports 1962-2017.csv")
         .defer(d3.csv, "../Data/US Imports 1962-2017.csv")
         .await(readyData);*/
     //function readyData(error, data) {
+
+
+    var svg2 = d3.select("#stacked"),
+        margin = {top:20, right:180, bottom:30, left:40},
+        width = +svg2.attr("width") - margin.left - margin.right,
+        height = +svg2.attr("height") - margin.top - margin.bottom,
+        g = svg2.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var x = d3.scaleBand()
+        .rangeRound([0, width])
+        .padding(0.3)
+        .align(0.3);
+
+    var y = d3.scaleLinear()
+        .rangeRound([height,0]);
+
+    var colors = d3.scaleOrdinal(d3.schemeCategory20);
+
+    var stack = d3.stack();
 
     d3.csv("US_Exports_1962-2017.csv", function (data) {
         dataAllCountries = {};
@@ -283,7 +295,6 @@
                 }
             });
         }
-
         let countryChartData = [];
         for (let country in dataAllCountries){
             let d = {};
@@ -291,9 +302,7 @@
             d.series = dataAllCountries;
             countryChartData.push(d);
         }
-
         let countryOptions = d3.select("#countryOptions");
-
         countryChartData.forEach(function (d) {
             let options = countryOptions
                 .append("label")
@@ -310,65 +319,76 @@
                 .text(d.country);
             options.append("br");
         });
+       // x.domain(d3.extent(data, function (d) { return d.date;}));
+       // y.domain(d3.extent(data, function (d) { return d.value;}));
 
-
-
-        x.domain(d3.extent(data, function (d) { return d.date;}));
-        y.domain(d3.extent(data, function (d) { return d.value;}));
-
-        let marginBar = {top:20, right:160, bottom:35, left:30};
-        const widthBar = 960 - marginBar.left - marginBar.right;
-        const heightBar = 500 - marginBar.top - marginBar.bottom;
-
-        let svg2 = d3.select("body")
-            .append("svg2")
-            .attr("width", widthBar + marginBar.left + marginBar.right)
-            .attr("height", heightBar + marginBar.top + marginBar.bottom)
-            .append("g")
-            .attr("transform", "translate(" + marginBar.left + "," + marginBar.top + ")");
-
-        let dataset = d3.stack()(dataAllCountries[d.country]).map(function(countryBar){
+        /*let dataset = d3.stack()(dataAllCountries[d.country]).map(function(countryBar){
             return dataAllCountries.map(function(d){
                 return {x: d.year, y: +d[countryBar]};
             });
-        });
+        });*/
+        data.sort(function(a,b){ return b.total - a.total;});
 
-        let xBar = d3.scaleOrdinal()
-            .domain(dataset[0].map(function(d){ return d.x}))
-            .rangeRoundBands([10, width-10], 0.02);
 
-        let yBar = d3.scaleLinear()
-            .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
-            .range([heightBar, 0]);
+        x.domain(data.map(function(d){ return d.year;}));
+        y.domain([0, d3.max(data, function(d){ return d.total;})]).nice();
+        colors.domain(data.columns.slice(3));
 
-        let colors = d3.scaleOrdinal(d3.schemeCategory20);
 
-        let yAxisBar = d3.axisLeft(yBar)
+
+        /*let yAxisBar = d3.axisLeft(yBar)
             .ticks(5)
             .tickSize(-widthBar, 0, 0)
             .tickFormat(function (d) { return d});
-
         let xAxisBar = d3.axisBottom(xBar)
-            .tickFormat(function(d){ return d});
+            .tickFormat(function(d){ return d});*/
+        g.selectAll(".serie")
+            .data(stack.keys(data.columns.slice(1))(data))
+            .enter().append("g")
+                .attr("class", "serie")
+                .attr("fill", function(d){ return colors(d.key); })
+            .selectAll("rect")
+            .data(function(d){ return d;})
+            .enter().append("rect")
+                .attr("x", function(d){ return x(d.data.year); })
+                .attr("y", function(d){ return y(d[1]); })
+                .attr("height",function(d){ return y(d[0]) - y(d[1]); })
+                .attr('width', x.bandwidth());
 
+        g.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        g.append("g")
+            .attr("class","axis axis--y")
+            .call(d3.axisLeft(y).ticks(10, "s"))
+            .append("text")
+            .attr("x", 2)
+            .attr("y", y(y.ticks(10).pop()))
+            .attr("dy", "0.35em")
+            .attr("text-anchor", "start")
+            .attr("fill", "#000")
+            .text("Value");
+
+        /*
         svg2.append("g")
             .attr("class", "y axis")
             .call(yAxisBar);
-
         svg2.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + heightBar + ")")
             .call(xAxisBar);
-
         let groups = svg2.selectAll("g.cost")
             .data(dataset)
             .enter().append("g")
             .attr("class", "cost")
             .style("fill", function (d, i) {
                 return colors[i];
-            });
+            });*/
 
-        let rect = groups.selectAll("rect")
+
+        /*let rect = groups.selectAll("rect")
             .data(function(d){ return d;})
             .enter()
             .append("rect")
@@ -383,53 +403,51 @@
                 let yPosition = d3.mouse(this)[1] - 25;
                 tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                 toottip.select("text").text(d.y);
-            });
-
-        let legend = svg2.selectAll(".legend")
-            .data(colors)
+            });*/
+        var legend = g.selectAll(".legend")
+            //.data(colors)
+            .data(data.columns.slice(1).reverse())
             .enter().append("g")
             .attr("class", "legend")
-            .attr("transform", function(d,i){ return "translate(30," + i * 19 + ")";});
+            .attr("transform", function(d,i){ return "translate(0," + i * 20 + ")";})
+            .style("font", "10px sans-serif");
 
         legend.append("rect")
-            .attr("x", widthBar - 18)
+            .attr("x", width + 18)
             .attr("width", 18)
             .attr("height", 18)
-            .style("fill", function(d, i){return colors.step().reverse()[i];});
+            .style("fill", colors); //function(d, i){return colors.step().reverse()[i];}
 
         legend.append("text")
-            .attr("x", widthBar + 5)
+            .attr("x", width + 44)
             .attr("y", 9)
             .attr("dy", ".35em")
             .style("text-anchor", "start")
             .text(d => d);
 
+
         // Prep the tooltip bits, initial display is hidden
-        var tooltip = svg.append("g")
+        /*var tooltip = svg2.append("g")
             .attr("class", "tooltip")
             .style("display", "none");
-
         tooltip.append("rect")
             .attr("width", 30)
             .attr("height", 20)
             .attr("fill", "white")
             .style("opacity", 0.5);
-
         tooltip.append("text")
             .attr("x", 15)
             .attr("dy", "1.2em")
             .style("text-anchor", "middle")
             .attr("font-size", "12px")
-            .attr("font-weight", "bold");
+            .attr("font-weight", "bold");*/
     });
-
-
-
+        function type(d,i,columns){
+            for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
+            d.total = t;
+            return d;
+        }
     //}
-
-
-
-
 </script>
 </body>
 </html>

@@ -110,10 +110,9 @@
 </style>
 <body>
 <div id="stackedbars">
-    <h1>Segments</h1>
     <svg id="stacked" width="600" height="500"></svg>
 </div>
-<div id="charts"></div>
+<!--<div id="charts"></div>-->
 <div id="options">
     <h1>US Weapons: Imports & Exports (1962-2017)</h1>
     <h4>Country Selection:</h4>
@@ -252,26 +251,19 @@
         .defer(d3.csv, "../Data/US Imports 1962-2017.csv")
         .await(readyData);*/
     //function readyData(error, data) {
-
-
-    var svg2 = d3.select("#stacked"),
+    /*var svg2 = d3.select("#stacked"),
         margin = {top:20, right:180, bottom:30, left:40},
         width = +svg2.attr("width") - margin.left - margin.right,
         height = +svg2.attr("height") - margin.top - margin.bottom,
         g = svg2.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
     var x = d3.scaleBand()
         .rangeRound([0, width])
         .padding(0.3)
         .align(0.3);
-
     var y = d3.scaleLinear()
         .rangeRound([height,0]);
-
     var colors = d3.scaleOrdinal(d3.schemeCategory20);
-
-    var stack = d3.stack();
-
+    var stack = d3.stack();*/
     d3.csv("US_Exports_1962-2017.csv", function (data) {
         dataAllCountries = {};
         //if (error) throw error;
@@ -319,47 +311,40 @@
                 .text(d.country);
             options.append("br");
         });
-       // x.domain(d3.extent(data, function (d) { return d.date;}));
-       // y.domain(d3.extent(data, function (d) { return d.value;}));
-
+        // x.domain(d3.extent(data, function (d) { return d.date;}));
+        // y.domain(d3.extent(data, function (d) { return d.value;}));
         /*let dataset = d3.stack()(dataAllCountries[d.country]).map(function(countryBar){
             return dataAllCountries.map(function(d){
                 return {x: d.year, y: +d[countryBar]};
             });
         });*/
+        /*
         data.sort(function(a,b){ return b.total - a.total;});
-
-
         x.domain(data.map(function(d){ return d.year;}));
         y.domain([0, d3.max(data, function(d){ return d.total;})]).nice();
         colors.domain(data.columns.slice(3));
-
-
-
         /*let yAxisBar = d3.axisLeft(yBar)
             .ticks(5)
             .tickSize(-widthBar, 0, 0)
             .tickFormat(function (d) { return d});
         let xAxisBar = d3.axisBottom(xBar)
             .tickFormat(function(d){ return d});*/
-        g.selectAll(".serie")
+        /*g.selectAll(".serie")
             .data(stack.keys(data.columns.slice(1))(data))
             .enter().append("g")
-                .attr("class", "serie")
-                .attr("fill", function(d){ return colors(d.key); })
+            .attr("class", "serie")
+            .attr("fill", function(d){ return colors(d.key); })
             .selectAll("rect")
             .data(function(d){ return d;})
             .enter().append("rect")
-                .attr("x", function(d){ return x(d.data.year); })
-                .attr("y", function(d){ return y(d[1]); })
-                .attr("height",function(d){ return y(d[0]) - y(d[1]); })
-                .attr('width', x.bandwidth());
-
+            .attr("x", function(d){ return x(d.data.year); })
+            .attr("y", function(d){ return y(d[1]); })
+            .attr("height",function(d){ return y(d[0]) - y(d[1]); })
+            .attr('width', x.bandwidth());
         g.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisBottom(x));
-
         g.append("g")
             .attr("class","axis axis--y")
             .call(d3.axisLeft(y).ticks(10, "s"))
@@ -370,7 +355,6 @@
             .attr("text-anchor", "start")
             .attr("fill", "#000")
             .text("Value");
-
         /*
         svg2.append("g")
             .attr("class", "y axis")
@@ -386,8 +370,6 @@
             .style("fill", function (d, i) {
                 return colors[i];
             });*/
-
-
         /*let rect = groups.selectAll("rect")
             .data(function(d){ return d;})
             .enter()
@@ -404,28 +386,24 @@
                 tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                 toottip.select("text").text(d.y);
             });*/
-        var legend = g.selectAll(".legend")
-            //.data(colors)
+        /*var legend = g.selectAll(".legend")
+        //.data(colors)
             .data(data.columns.slice(1).reverse())
             .enter().append("g")
             .attr("class", "legend")
             .attr("transform", function(d,i){ return "translate(0," + i * 20 + ")";})
             .style("font", "10px sans-serif");
-
         legend.append("rect")
             .attr("x", width + 18)
             .attr("width", 18)
             .attr("height", 18)
             .style("fill", colors); //function(d, i){return colors.step().reverse()[i];}
-
         legend.append("text")
             .attr("x", width + 44)
             .attr("y", 9)
             .attr("dy", ".35em")
             .style("text-anchor", "start")
-            .text(d => d);
-
-
+            .text(d => d);*/
         // Prep the tooltip bits, initial display is hidden
         /*var tooltip = svg2.append("g")
             .attr("class", "tooltip")
@@ -442,11 +420,11 @@
             .attr("font-size", "12px")
             .attr("font-weight", "bold");*/
     });
-        function type(d,i,columns){
-            for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
-            d.total = t;
-            return d;
-        }
+    /*function type(d,i,columns){
+        for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
+        d.total = t;
+        return d;
+    }*/
     //}
 </script>
 </body>

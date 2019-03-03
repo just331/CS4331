@@ -56,7 +56,7 @@
         width: 50%;
         margin: 0 auto;
     }
-    svg {
+    #worldMap{
         width: 30%;
         height: 35%;
         position: absolute;
@@ -66,10 +66,12 @@
         border-style: solid;
         border-color: #CCC;
     }
-    svg2{
-        font:10px sans-serif;
-        shape-rendering: crispEdges;
+    #stacked{
+        background-color: #ffffff;
+        border-style: solid;
+        border-color: #CCC;
     }
+
     .axis path,
     .axis line{
         fill:none;
@@ -110,9 +112,10 @@
 </style>
 <body>
 <div id="stackedbars">
-    <svg id="stacked" width="600" height="500"></svg>
+    <h1> US Weapon Exports: 1962-2007</h1>
+    <svg id="stacked" width="700" height="500"></svg>
 </div>
-<!--<div id="charts"></div>-->
+
 <div id="options">
     <h1>US Weapons Exports: 1962-2017</h1>
     <h4>Country Selection:</h4>
@@ -139,6 +142,7 @@
             </tr>
         </table>
     </div>
+
 </div>
 <svg id="worldMap" width="600" height="300"></svg>
 <div class="tooltip1"></div>
@@ -211,73 +215,49 @@
             }
         }
     }
-    /*let charts_margin = {top:30, right:20, bottom:30, left:50};
-    let w_charts = $("#charts").width() * 0.95 - charts_margin.left - charts_margin.right;
-    let h_charts = 150 - charts_margin.bottom - charts_margin.top;
-    let svgHeight = h_charts + charts_margin.top + charts_margin.bottom;
-    let svgWidth = w_charts + charts_margin.left + charts_margin.right;
-    let x = d3.scaleTime().range([0,w_charts]);
-    let y = d3.scaleLinear().range([h_charts,0]);
-    let xAxis = d3.axisBottom(x).ticks(7).tickFormat(d3.timeFormat("'Y"));
-    let yAxis = d3.axisLeft(y).ticks(5);
-    let valLine = d3.line()
-        .x(function (d) {
-            return x(d.date);
-        })
-        .y(function (d) {
-            return y(d.value);
-        });
-    let zeroLine = d3.line()
-        .x(function (d) {
-            return x(d.date);
-        })
-        .y(y(0));
-    let valArea = d3.area()
-        .x(function (d) {
-            return x(d.date);
-        })
-        .y1(function (d) {
-            return y(d.date);
-        });
-    let zeroArea = d3.area()
-        .x(function (d) {
-            return x(d.date);
-        })
-        .y0(y(0))
-        .y1(y(0));*/
-    //let bisectYear = d3.bisector(function (d) { return d.date;}).left;
-    /*d3.queue()
-        .defer(d3.csv, "../Data/US Exports 1962-2017.csv")
-        .defer(d3.csv, "../Data/US Imports 1962-2017.csv")
-        .await(readyData);*/
-    //function readyData(error, data) {
-    /*var svg2 = d3.select("#stacked"),
-        margin = {top:20, right:180, bottom:30, left:40},
+
+    // create the svg
+    let svg2 = d3.select("#stacked"),
+        margin = {top: 20, right: 20, bottom: 30, left: 40},
         width = +svg2.attr("width") - margin.left - margin.right,
         height = +svg2.attr("height") - margin.top - margin.bottom,
         g = svg2.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    var x = d3.scaleBand()
-        .rangeRound([0, width])
-        .padding(0.3)
-        .align(0.3);
-    var y = d3.scaleLinear()
-        .rangeRound([height,0]);
-    var colors = d3.scaleOrdinal(d3.schemeCategory20);
-    var stack = d3.stack();*/
-    d3.csv("US_Exports_1962-2017.csv", function (data) {
+
+    // set x scale
+    let x = d3.scaleBand()
+        .rangeRound([0, width-margin.left -margin.right])
+        .paddingInner(0.05)
+        .align(0.1);
+
+    // set y scale
+    let y = d3.scaleLinear()
+        .rangeRound([height, 0]);
+
+    // set the colors
+    let z = d3.scaleOrdinal(d3.schemeCategory20b);
+
+
+
+    d3.csv("testExports.csv", function(d, i, columns){
+       for (i=1, t=0; i<columns.length;++i) t += d[columns[i]] = +d[columns[i]];
+        d.total = t;
+        return d;
+    }, function (error, data) {
         dataAllCountries = {};
-        //if (error) throw error;
+        if (error) throw error;
+
+        let keys = data.columns.slice(1);
+        /*
         data.forEach(function (d) {
             if (!dataAllCountries[d.country]){
                 dataAllCountries[d.country] = [];
             }
-            d.date = d3.timeParse('%Y')(d.year);
-            d.value = +d.value;
-            d.units = +d.units;
-            dataAllCountries[d.country].push(d);
+            d.date = d3.timeParse('%Y')(d.date);
+            //d.value = +d.value;
+            dataAllCountries[keys ].push(d);
         });
         for(let country in dataAllCountries){
-            dataAllCountries[country].sort(function(a,b) {
+            dataAllCountries[keys].sort(function(a,b) {
                 if (a.date < b.date){
                     return -1;
                 }else if (a.date > b.date){
@@ -290,7 +270,7 @@
         let countryChartData = [];
         for (let country in dataAllCountries){
             let d = {};
-            d.country = country;
+            keys = country;
             d.series = dataAllCountries;
             countryChartData.push(d);
         }
@@ -298,7 +278,7 @@
         countryChartData.forEach(function (d) {
             let options = countryOptions
                 .append("label")
-                .datum(d.country);
+                .datum(keys);
             options.append("input")
                 .attr("type", "checkbox")
                 .property("checked", function (d) {
@@ -308,124 +288,95 @@
             //.attr("id", removeWhiteSpace)
             //.on("click", changeChart);
             options.append("text")
-                .text(d.country);
+                .text(keys);d.country);
             options.append("br");
-        });
-        // x.domain(d3.extent(data, function (d) { return d.date;}));
-        // y.domain(d3.extent(data, function (d) { return d.value;}));
-        /*let dataset = d3.stack()(dataAllCountries[d.country]).map(function(countryBar){
-            return dataAllCountries.map(function(d){
-                return {x: d.year, y: +d[countryBar]};
-            });
         });*/
-        /*
-        data.sort(function(a,b){ return b.total - a.total;});
-        x.domain(data.map(function(d){ return d.year;}));
-        y.domain([0, d3.max(data, function(d){ return d.total;})]).nice();
-        colors.domain(data.columns.slice(3));
-        /*let yAxisBar = d3.axisLeft(yBar)
-            .ticks(5)
-            .tickSize(-widthBar, 0, 0)
-            .tickFormat(function (d) { return d});
-        let xAxisBar = d3.axisBottom(xBar)
-            .tickFormat(function(d){ return d});*/
-        /*g.selectAll(".serie")
-            .data(stack.keys(data.columns.slice(1))(data))
-            .enter().append("g")
-            .attr("class", "serie")
-            .attr("fill", function(d){ return colors(d.key); })
-            .selectAll("rect")
-            .data(function(d){ return d;})
-            .enter().append("rect")
-            .attr("x", function(d){ return x(d.data.year); })
-            .attr("y", function(d){ return y(d[1]); })
-            .attr("height",function(d){ return y(d[0]) - y(d[1]); })
-            .attr('width', x.bandwidth());
+
+        //data.sort(function(a, b) { return b.total - a.total; });
+        x.domain(data.map(function(d) { return d.date; }));
+        y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
+        z.domain(keys);
+
         g.append("g")
-            .attr("class", "axis axis--x")
+            .selectAll("g")
+            .data(d3.stack().keys(keys)(data))
+            .enter().append("g")
+            .attr("fill", function(d) { return z(d.key); })
+            .selectAll("rect")
+            .data(function(d) { return d; })
+            .enter().append("rect")
+            .attr("x", function(d) { return x(d.data.date); })
+            .attr("y", function(d) { return y(d[1]); })
+            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+            .attr("width", x.bandwidth())
+            .on("mouseover", function() { tooltip.style("display", null); })
+            .on("mouseout", function() { tooltip.style("display", "none"); })
+            .on("mousemove", function(d) {
+                console.log(d);
+                let xPosition = d3.mouse(this)[0] - 5;
+                let yPosition = d3.mouse(this)[1] - 5;
+                tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+                tooltip.select("text").text(d[1]-d[0]);
+            });
+
+        g.append("g")
+            .attr("class", "axis")
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisBottom(x));
+
         g.append("g")
-            .attr("class","axis axis--y")
-            .call(d3.axisLeft(y).ticks(10, "s"))
+            .attr("class", "axis")
+            .call(d3.axisLeft(y).ticks(null, "s"))
             .append("text")
             .attr("x", 2)
-            .attr("y", y(y.ticks(10).pop()))
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "start")
+            .attr("y", y(y.ticks().pop()) + 0.5)
+            .attr("dy", "0.32em")
             .attr("fill", "#000")
-            .text("Value");
-        /*
-        svg2.append("g")
-            .attr("class", "y axis")
-            .call(yAxisBar);
-        svg2.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + heightBar + ")")
-            .call(xAxisBar);
-        let groups = svg2.selectAll("g.cost")
-            .data(dataset)
+            .attr("font-weight", "bold")
+            .attr("text-anchor", "start");
+
+        let legend = g.append("g")
+            .attr("class", "legend1")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("text-anchor", "end")
+            .selectAll("g")
+            .data(keys.slice(1,80))
             .enter().append("g")
-            .attr("class", "cost")
-            .style("fill", function (d, i) {
-                return colors[i];
-            });*/
-        /*let rect = groups.selectAll("rect")
-            .data(function(d){ return d;})
-            .enter()
-            .append("rect")
-            .attr("x", function(d){ return x(d.x);})
-            .attr("y", function(d){ return y(d.y0 + d.y);})
-            .attr("height", function(d){ return y(d.y0) - y(d.y0 + d.y);})
-            .attr("width", x.rangeBand())
-            .on("mouseover", function(){ tooltip.style("display", null);})
-            .on("mouseout", function () { tooltip.style("display", "none");})
-            .on("mousemove", function(d){
-                let xPosition = d3.mouse(this)[0] - 15;
-                let yPosition = d3.mouse(this)[1] - 25;
-                tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                toottip.select("text").text(d.y);
-            });*/
-        /*var legend = g.selectAll(".legend")
-        //.data(colors)
-            .data(data.columns.slice(1).reverse())
-            .enter().append("g")
-            .attr("class", "legend")
-            .attr("transform", function(d,i){ return "translate(0," + i * 20 + ")";})
-            .style("font", "10px sans-serif");
+            .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
         legend.append("rect")
-            .attr("x", width + 18)
-            .attr("width", 18)
-            .attr("height", 18)
-            .style("fill", colors); //function(d, i){return colors.step().reverse()[i];}
+            .attr("x", width - 19)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", z);
+
         legend.append("text")
-            .attr("x", width + 44)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "start")
-            .text(d => d);*/
-        // Prep the tooltip bits, initial display is hidden
-        /*var tooltip = svg2.append("g")
-            .attr("class", "tooltip")
-            .style("display", "none");
-        tooltip.append("rect")
-            .attr("width", 30)
-            .attr("height", 20)
-            .attr("fill", "white")
-            .style("opacity", 0.5);
-        tooltip.append("text")
-            .attr("x", 15)
-            .attr("dy", "1.2em")
-            .style("text-anchor", "middle")
-            .attr("font-size", "12px")
-            .attr("font-weight", "bold");*/
+            .attr("x", width - 24)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .text(function(d) { return d; });
+
     });
-    /*function type(d,i,columns){
-        for (i = 1, t = 0; i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
-        d.total = t;
-        return d;
-    }*/
-    //}
+
+    // Prep the tooltip bits, initial display is hidden
+    let tooltip = svg2.append("g")
+        .attr("class", "tooltip")
+        .style("display", "none");
+
+    tooltip.append("rect")
+        .attr("width", 60)
+        .attr("height", 20)
+        .attr("fill", "white")
+        .style("opacity", 0.5);
+
+    tooltip.append("text")
+        .attr("x", 30)
+        .attr("dy", "1.2em")
+        .style("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold");
+
 </script>
 </body>
 </html>

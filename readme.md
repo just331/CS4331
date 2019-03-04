@@ -15,7 +15,7 @@ clearly peaked in 1995. This was at a time of great conflict around the world, w
 eastern Europe and the middle east. The visualization confirms this, by showing that a lot of the exports of weapons from
 the U.S. were indeed going to those regions.  
 
-![ScreenShot](https://github.com/just331/CS4331/project1_fact1.png)
+![ScreenShot](https://github.com/just331/CS4331/project1_fact1.PNG)
 
 ### The Effects of 9/11 Aftermath 
 Another interesting observation from the visualization is the increase in exports from the U.S. to other countries 

@@ -60,8 +60,8 @@
         width: 30%;
         height: 35%;
         position: absolute;
-        bottom: 0;
-        right:  0;
+        bottom: 20px;
+        right:  10px;
         background-color: #ffffff;
         border-style: solid;
         border-color: #CCC;
@@ -112,12 +112,12 @@
 </style>
 <body>
 <div id="stackedbars">
-    <h1> US Weapon Exports: 1962-2007</h1>
-    <svg id="stacked" width="700" height="500"></svg>
+    <h1> US Weapon Exports: 1962-2001</h1>
+    <svg id="stacked" width="1200" height="850"></svg>
 </div>
 
-<div id="options">
-    <h1>US Weapons Exports: 1962-2017</h1>
+<!--<div id="options">
+    <h1>US Weapons Exports: 1962-2007</h1>
     <h4>Country Selection:</h4>
     <div id ="countryOptions">
         <input type="checkbox" id="all" name="countrySelection" onclick=selectAll(this)> Select All<br>
@@ -143,7 +143,7 @@
         </table>
     </div>
 
-</div>
+</div>-->
 <svg id="worldMap" width="600" height="300"></svg>
 <div class="tooltip1"></div>
 
@@ -236,8 +236,6 @@
     // set the colors
     let z = d3.scaleOrdinal(d3.schemeCategory20b);
 
-
-
     d3.csv("testExports.csv", function(d, i, columns){
        for (i=1, t=0; i<columns.length;++i) t += d[columns[i]] = +d[columns[i]];
         d.total = t;
@@ -247,6 +245,7 @@
         if (error) throw error;
 
         let keys = data.columns.slice(1);
+        console.log(keys);
         /*
         data.forEach(function (d) {
             if (!dataAllCountries[d.country]){
@@ -266,14 +265,15 @@
                     return 0;
                 }
             });
-        }
+        }*/
         let countryChartData = [];
-        for (let country in dataAllCountries){
+        for (let country in keys){
             let d = {};
-            keys = country;
-            d.series = dataAllCountries;
+            let keysC = country;
+            d.series = keysC;
             countryChartData.push(d);
         }
+        console.log(countryChartData);
         let countryOptions = d3.select("#countryOptions");
         countryChartData.forEach(function (d) {
             let options = countryOptions
@@ -288,9 +288,9 @@
             //.attr("id", removeWhiteSpace)
             //.on("click", changeChart);
             options.append("text")
-                .text(keys);d.country);
+                .text(keys);//d.country);
             options.append("br");
-        });*/
+        });
 
         //data.sort(function(a, b) { return b.total - a.total; });
         x.domain(data.map(function(d) { return d.date; }));
@@ -301,18 +301,17 @@
             .selectAll("g")
             .data(d3.stack().keys(keys)(data))
             .enter().append("g")
-            .attr("fill", function(d) { return z(d.key); })
+                .attr("fill", function(d) { return z(d.key); })
             .selectAll("rect")
             .data(function(d) { return d; })
             .enter().append("rect")
-            .attr("x", function(d) { return x(d.data.date); })
-            .attr("y", function(d) { return y(d[1]); })
-            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-            .attr("width", x.bandwidth())
+                .attr("x", function(d) { return x(d.data.date); })
+                .attr("y", function(d) { return y(d[1]); })
+                .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+                .attr("width", x.bandwidth())
             .on("mouseover", function() { tooltip.style("display", null); })
             .on("mouseout", function() { tooltip.style("display", "none"); })
             .on("mousemove", function(d) {
-                console.log(d);
                 let xPosition = d3.mouse(this)[0] - 5;
                 let yPosition = d3.mouse(this)[1] - 5;
                 tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
@@ -322,6 +321,7 @@
         g.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(0," + height + ")")
+
             .call(d3.axisBottom(x));
 
         g.append("g")
@@ -341,18 +341,18 @@
             .attr("font-size", 10)
             .attr("text-anchor", "end")
             .selectAll("g")
-            .data(keys.slice(1,80))
+            .data(keys.slice(1,50))
             .enter().append("g")
             .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
         legend.append("rect")
-            .attr("x", width - 19)
+            .attr("x", width - 5)
             .attr("width", 19)
             .attr("height", 19)
             .attr("fill", z);
 
         legend.append("text")
-            .attr("x", width - 24)
+            .attr("x", width - 10)
             .attr("y", 9.5)
             .attr("dy", "0.32em")
             .text(function(d) { return d; });

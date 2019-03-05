@@ -15,14 +15,16 @@ clearly peaked in 1995. This was at a time of great conflict around the world, w
 eastern Europe and the middle east. The visualization confirms this, by showing that a lot of the exports of weapons from
 the U.S. were indeed going to those regions.  
 
-![ScreenShot](https://github.com/just331/CS4331/project1_fact1.PNG)
+![ScreenShot](https://github.com/just331/CS4331/blob/master/project1_fact1.PNG)
 
-### The Effects of 9/11 Aftermath 
+### The Gulf War 
 Another interesting observation from the visualization is the increase in exports from the U.S. to other countries 
-after the 9/11 terrorist attacks, and subsequent wars in Iraq and Afghanistan. This was observed by looking at 
-the stacked bar graph for each year of U.S. exports. A screenshot is provided below:
+due to the start of the Gulf War in 1989-1990, to liberate Kuwait, after Iraq's annexation of the country. This was observed by looking at 
+the line chart of the average value in exports, of all countries in a given year, by the United states. The average value
+exports went from just shy of 1.6 million, sky rocketing to an average over 17 million from 1988 to 1989.
+A screenshot is provided below:
 
-![ScreenShot](https://github.com/just331/CS4331/project1_fact2.png)
+![ScreenShot](https://github.com/just331/CS4331/blob/master/2019-03-04.PNG)
 
 
  

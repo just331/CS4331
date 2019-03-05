@@ -3,9 +3,10 @@ An interactive time series visualization of US weapon exports to countries, from
 
 The web app can be viewed at: https://just331.github.io/CS4331/ 
 
-The video for this visualization can be viewed at: 
+The video for this visualization can be viewed at: https://youtu.be/0yEn4rmfPXk
 
-This application provides several means to analyze the data [Retrieved at: https://www.prio.org/Data/Mapping-Arms-Data/]
+This application provides several means to analyze the data [Retrieved at: https://www.prio.org/Data/Mapping-Arms-Data/ and
+http://nisat.prio.org/Trade-Database/Researchers-Database/]
 . The main feature of this visualization is the stacked bar graph of every country that The United States has exported to
 during the time frame, along with tooltip that allows a user to hover over each slice in a bar to see the value that a 
 country imported. Another visualization is a line chart that shows the average value (in U.S. Dollars) that was exported 

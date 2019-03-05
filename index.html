@@ -6,7 +6,7 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <title>US Weapon Imports/Exports [1962-2017]</title>
+    <title>US Weapon Imports/Exports [1962-2000]</title>
 </head>
 <style>
     html{
@@ -92,7 +92,7 @@
 </div>
 
 <div id="stackedbars">
-    <h1> US Weapon Exports: 1962-2001</h1>
+    <h1> US Weapon Exports: 1962-2000</h1>
     <svg id="stacked" width="1250" height="850"></svg>
 </div>
 
@@ -335,7 +335,7 @@
             .attr("font-size", 10)
             .attr("text-anchor", "end")
             .selectAll("g")
-            .data(keys.slice(1))
+            .data(keys.slice(10,55))
             .enter().append("g")
             .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 

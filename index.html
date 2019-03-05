@@ -12,29 +12,21 @@
     html{
         height: 100%;
     }
-    body, table{
-        font: 12px "Times New Roman";
+    body{
+        font: 12px Arial;
     }
-    .inactive {
-        fill: #AAA;
-    }
-    .active{
-        fill: black;
-    }
-    .area.above {
-        fill: rgb(252, 69, 233);
-    }
-    .baseLine {
-        stroke: black;
-        stroke-width: 1.5;
+
+    #line path {
+        stroke: steelblue;
+        stroke-width: 2;
         fill: none;
     }
+
     #worldMap path:hover {
         opacity: 0.7;
     }
+
     #worldMap{
-        width: 30%;
-        height: 35%;
         position: absolute;
         bottom: 20px;
         right:  10px;
@@ -59,20 +51,15 @@
     .axis path,
     .axis line{
         fill:none;
-        stroke: #000000;
+        stroke: grey;
+        stroke-width: 1;
+        shape-rendering: crispEdges;
     }
-    .path.domain{
-        stroke: none;
-    }
+
     .y .tick line{
         stroke: #dddddd;
     }
-    .bar{
-        fill: steelblue;
-    }
-    .hidden {
-        display: none;
-    }
+
     div.tooltip1 {
         color: #222;
         background: #fff;
@@ -95,21 +82,13 @@
         border-radius: 8px;
         pointer-events: none;
     }
-
-    #charts{
-        float: left;
-        width: 100%;
-        height: 100%;
-        margin: 0px 0px 0px 0.6%;
-        padding: 10px;
-        border-style: double;
-        border-color: #222222;
-        overflow-y: scroll;
-    }
 </style>
 <body>
+
+
 <div id="lineChart">
-    <svg id="line" width="575" height="400"></svg>
+    <svg id="line" width="600" height="400">
+    </svg>
 </div>
 
 <div id="stackedbars">
@@ -117,180 +96,196 @@
     <svg id="stacked" width="1250" height="850"></svg>
 </div>
 
-
 <svg id="worldMap" width="600" height="300"></svg>
 <div class="tooltip1"></div>
 
 
 <script>
+       // create the svg for the world map
+       let marginMap = {top: 10, right: 10, bottom: 10, left: 10};
+       let widthMap = 500- marginMap.left - marginMap.right;
+       let heightMap = 300 - marginMap.top - marginMap.bottom;
+       let worldMap = d3.geoMercator()
+           .center([0,15])
+           .translate([260,215]) // Move map left/right and up/down [300,215]
+           .scale([500/(2*Math.PI)]);
+       let tooltip1 = d3.select("div.tooltip1");
+       let pathMap = d3.geoPath()
+           .projection(worldMap);
+       let mapSvg = d3.select("#worldMap")
+           .append("g")
+           .attr("width", widthMap)
+           .attr("height", heightMap);
+       d3.queue()
+           .defer(d3.json, "world-110m.json")
+           .defer(d3.csv, "world-country-names.csv")
+           .await(ready);
+       function ready(error, world, names) {
+           if (error) throw error;
+           let countries1 = topojson.feature(world, world.objects.countries).features;
+           let countries = countries1.filter(function(d) {
+               return names.some(function(n) {
+                   if (d.id == n.id) return d.name = n.name;
+               })});
+           mapSvg.selectAll("path")
+               .data(countries)
+               .enter()
+               .append("path")
+               .attr("stroke","purple")
+               .attr("stroke-width",1)
+               .attr("fill", "white")
+               .attr("d", pathMap )
+               .on("mouseover",function(d,i){
+                   d3.select(this).attr("fill","grey").attr("stroke-width",2);
+                   return tooltip1.style("hidden", false).html(d.name);
+               })
+               .on("mousemove",function(d){
+                   tooltip1.classed("hidden", false)
+                       .style("top", (d3.event.pageY) + "px")
+                       .style("left", (d3.event.pageX + 10) + "px")
+                       .html(d.name);
+               })
+               .on("mouseout",function(d,i){
+                   d3.select(this).attr("fill","white").attr("stroke-width",1);
+                   tooltip1.classed("hidden", true);
+               });
+       }
 
-    // create the svg for the world map
-    let marginMap = {top: 10, right: 10, bottom: 10, left: 10};
-    let widthMap = 500- marginMap.left - marginMap.right;
-    let heightMap = 300 - marginMap.top - marginMap.bottom;
-    let worldMap = d3.geoMercator()
-        .center([0,15])
-        .translate([260,215]) // Move map left/right and up/down [300,215]
-        .scale([500/(2*Math.PI)]);
-    let tooltip1 = d3.select("div.tooltip1");
-    let path = d3.geoPath()
-        .projection(worldMap);
-    let mapSvg = d3.select("#worldMap")
-        .append("g")
-        .attr("width", widthMap)
-        .attr("height", heightMap);
-    d3.queue()
-        .defer(d3.json, "world-110m.json")
-        .defer(d3.csv, "world-country-names.csv")
-        .await(ready);
-    function ready(error, world, names) {
-        if (error) throw error;
-        let countries1 = topojson.feature(world, world.objects.countries).features;
-        let countries = countries1.filter(function(d) {
-            return names.some(function(n) {
-                if (d.id == n.id) return d.name = n.name;
-            })});
-        mapSvg.selectAll("path")
-            .data(countries)
-            .enter()
-            .append("path")
-            .attr("stroke","purple")
-            .attr("stroke-width",1)
-            .attr("fill", "white")
-            .attr("d", path )
-            .on("mouseover",function(d,i){
-                d3.select(this).attr("fill","grey").attr("stroke-width",2);
-                return tooltip1.style("hidden", false).html(d.name);
-            })
-            .on("mousemove",function(d){
-                tooltip1.classed("hidden", false)
-                    .style("top", (d3.event.pageY) + "px")
-                    .style("left", (d3.event.pageX + 10) + "px")
-                    .html(d.name);
-            })
-            .on("mouseout",function(d,i){
-                d3.select(this).attr("fill","white").attr("stroke-width",1);
-                tooltip1.classed("hidden", true);
-            });
-    }
 
 
-    // create svg for line chart of average value of exports
-    let marginLine = {topl:30, rightl:20, bottoml:30, leftl: 50},
-        widthLine = 600 -marginLine.leftl - marginLine.rightl,
-        heightLine = 270 - marginLine.topl - marginLine.bottoml;
-        // parse the date
+    // Set the dimensions of the canvas / graph
+    let margin = {top: 50, right: 15, bottom: 5, left: 75},
+        width = 600 - margin.left - margin.right,
+        height = 270 - margin.top - margin.bottom;
+
+    // Parse the date / time
     let parseDate = d3.timeParse("%Y");
     let formatTime = d3.timeFormat("%Y");
 
-        // set the range
-    let xLine = d3.scaleTime()
-        .range([0, widthLine]);
+    // Set the ranges
+    /*let x = d3.scaleTime()
+        .range([0, width]);*/
+    let x = d3.scaleBand()
+       .rangeRound([0, width-margin.left -margin.right])
+       .paddingInner(0.05)
+       .align(0.1);
 
-    let yLine = d3.scaleLinear()
-        .rangeRound([heightLine,0]);
+    let y = d3.scaleLinear()
+        .rangeRound([height,0]);
 
-    let xLineAxis = d3.axisBottom(xLine).ticks(5);
 
-    let yLineAxis = d3.axisLeft(yLine).ticks(5);
+    // Define the axes
 
-    let valueLine = d3.line()
-        .x(function (d) { return xLine(d.date); })
-        .y(function (d) { return yLine(d.Average); });
+    let xAxis = d3.axisBottom(x).ticks(5);
 
+    let yAxis = d3.axisLeft(y).ticks(5);
+
+
+    // Define the line
+    let valueline = d3.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.Average); });
+
+    // Define the div for the tooltip
     let div = d3.select("body").append("div")
         .attr("class", "tooltip2")
         .style("opacity", 0);
 
-    let svg3 = d3.select("#line")
+    // Adds the svg canvas
+    let svg = d3.select("#line")
         .append("svg")
-        .attr("width", widthLine + marginLine.leftl + marginLine.rightl)
-        .attr("height", heightLine + marginLine.topl + marginLine.bottoml)
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
         .append("g")
-        .attr("transform", "translate(" + marginLine.leftl + "," + marginLine.topl + ")");
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
 
+    // Get the data
     d3.csv("export_average.csv", function(error, data) {
-        data.forEach(function (d) {
+        if (error) throw error;
+        data.forEach(function(d) {
             d.date = parseDate(d.date);
             d.Average = +d.Average;
+
         });
+        console.log(data);
+        // Scale the range of the data
+        //x.domain(d3.extent(data, function(d) { return d.date; }));
+        x.domain(data.map(function(d) { return d.date; }));
+        y.domain([0, d3.max(data, function(d) { return d.Average; })]);
 
-        // scale the range of data
-        //xLine.domain(data.map(function(d) { return d.date; }));
-        xLine.domain(d3.extent(data, function(d){ return d.date; }));
-        yLine([0, d3.max(data, function(d) { return d.Average; })]);
-
-        svg3.append("path")
+        // Add the valueline path.
+        svg.append("path")
             .attr("class", "line")
-            .attr("d", valueLine(data));
+            .attr("d", valueline(data));
 
-        svg3.selectAll("dot")
+        // Add the scatterplot
+        svg.selectAll("dot")
             .data(data)
             .enter().append("circle")
             .attr("r", 5)
-            .attr("cx", function(d) { return xLine(d.date); })
-            .attr("cy", function(d) { return yLine(d.Average);})
-            .on("mouseover", function (d) {
+            .attr("cx", function(d) { return x(d.date); })
+            .attr("cy", function(d) { return y(d.Average); })
+            .on("mouseover", function(d) {
                 div.transition()
                     .duration(200)
                     .style("opacity", .9);
-                div .html(formatTime(d.date) + "<br/>" + d.Average)
+                div .html(formatTime(d.date) + "<br/>"  + d.Average)
                     .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY -28) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
             })
-            .on("mouseout", function (d) {
+            .on("mouseout", function(d) {
                 div.transition()
                     .duration(500)
                     .style("opacity", 0);
             });
 
-        svg3.append("g")
+        // Add the X Axis
+        svg.append("g")
             .attr("class", "x axis")
-            .attr("transform","translate(0," + heightLine + ")")
-            .call(xLineAxis);
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
 
-        svg3.append("g")
+        // Add the Y Axis
+        svg.append("g")
             .attr("class", "y axis")
-            .call(yLineAxis);
+            .call(yAxis)
 
     });
 
-
-
     // create the svg for the stacked bar graph
     let svg2 = d3.select("#stacked"),
-        margin = {top: 20, right: 20, bottom: 30, left: 40},
-        width = +svg2.attr("width") - margin.left - margin.right,
-        height = +svg2.attr("height") - margin.top - margin.bottom,
-        g = svg2.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        marginBar = {topb: 20, rightb: 20, bottomb: 30, leftb: 40},
+        widthBar = +svg2.attr("width") - marginBar.leftb - marginBar.rightb,
+        heightBar = +svg2.attr("height") - marginBar.topb - marginBar.bottomb,
+        g = svg2.append("g").attr("transform", "translate(" + marginBar.leftb + "," + marginBar.topb + ")");
 
     // set x scale
-    let x = d3.scaleBand()
-        .rangeRound([0, width-margin.left -margin.right])
+    let xBar = d3.scaleBand()
+        .rangeRound([0, widthBar-marginBar.leftb -marginBar.rightb])
         .paddingInner(0.05)
         .align(0.1);
 
     // set y scale
-    let y = d3.scaleLinear()
-        .rangeRound([height, 0]);
+    let yBar = d3.scaleLinear()
+        .rangeRound([heightBar, 0]);
 
     // set the colors
     let z = d3.scaleOrdinal(d3.schemeCategory20b);
 
     // read in the data from csv file
-    d3.csv("testExports.csv", function(d, i, columns){
-       for (i=1, t=0; i<columns.length;++i) t += d[columns[i]] = +d[columns[i]];
+    d3.csv("testExports2.csv", function(d, i, columns){
+        for (i=1, t=0; i<columns.length;++i) t += d[columns[i]] = +d[columns[i]];
         d.total = t;
         return d;
     }, function (error, data) {
-        dataAllCountries = {};
         if (error) throw error;
 
         let keys = data.columns.slice(1);
 
         //data.sort(function(a, b) { return b.total - a.total; });
-        x.domain(data.map(function(d) { return d.date; }));
-        y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
+        xBar.domain(data.map(function(d) { return d.date; }));
+        yBar.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
         z.domain(keys);
 
         //create the stacked bar chart w/ tooltip
@@ -298,14 +293,14 @@
             .selectAll("g")
             .data(d3.stack().keys(keys)(data))
             .enter().append("g")
-                .attr("fill", function(d) { return z(d.key); })
+            .attr("fill", function(d) { return z(d.key); })
             .selectAll("rect")
             .data(function(d) { return d; })
             .enter().append("rect")
-                .attr("x", function(d) { return x(d.data.date); })
-                .attr("y", function(d) { return y(d[1]); })
-                .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-                .attr("width", x.bandwidth())
+            .attr("x", function(d) { return xBar(d.data.date); })
+            .attr("y", function(d) { return yBar(d[1]); })
+            .attr("height", function(d) { return yBar(d[0]) - yBar(d[1]); })
+            .attr("width", xBar.bandwidth())
             .on("mouseover", function() { tooltip.style("display", null); })
             .on("mouseout", function() { tooltip.style("display", "none"); })
             .on("mousemove", function(d) {
@@ -317,16 +312,15 @@
 
         g.append("g")
             .attr("class", "axis")
-            .attr("transform", "translate(0," + height + ")")
-
-            .call(d3.axisBottom(x));
+            .attr("transform", "translate(0," + heightBar + ")")
+            .call(d3.axisBottom(xBar));
 
         g.append("g")
             .attr("class", "axis")
-            .call(d3.axisLeft(y).ticks(null, "s"))
+            .call(d3.axisLeft(yBar).ticks(null, "s"))
             .append("text")
             .attr("x", 2)
-            .attr("y", y(y.ticks().pop()) + 0.5)
+            .attr("y", yBar(yBar.ticks().pop()) + 0.5)
             .attr("dy", "0.32em")
             .attr("fill", "#000")
             .attr("font-weight", "bold")
@@ -345,13 +339,13 @@
             .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
         legend.append("rect")
-            .attr("x", width - 5)
+            .attr("x", widthBar - 5)
             .attr("width", 19)
             .attr("height", 19)
             .attr("fill", z);
 
         legend.append("text")
-            .attr("x", width - 10)
+            .attr("x", widthBar - 10)
             .attr("y", 9.5)
             .attr("dy", "0.32em")
             .text(function(d) { return d; });
@@ -379,3 +373,5 @@
 </script>
 </body>
 </html>
+
+

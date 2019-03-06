@@ -6,7 +6,7 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <title>US Weapon Imports/Exports [1962-2000]</title>
+    <title>US Weapon Imports/Exports [1962-2001]</title>
 </head>
 <style>
     html{
@@ -86,13 +86,13 @@
 <body>
 
 
-<div id="lineChart">
+<div id="lineChart" title="Average Value in Exports Per Year (U.S. Dollars)">
     <svg id="line" width="600" height="400">
     </svg>
 </div>
 
 <div id="stackedbars">
-    <h1> US Weapon Exports: 1962-2000</h1>
+    <h1> US Weapon Exports: 1962-2001</h1>
     <svg id="stacked" width="1250" height="850"></svg>
 </div>
 
@@ -163,12 +163,12 @@
     let formatTime = d3.timeFormat("%Y");
 
     // Set the ranges
-    /*let x = d3.scaleTime()
-        .range([0, width]);*/
-    let x = d3.scaleBand()
+    let x = d3.scaleTime()
+        .range([0, width]);
+    /*let x = d3.scaleBand()
        .rangeRound([0, width-margin.left -margin.right])
        .paddingInner(0.05)
-       .align(0.1);
+       .align(0.1);*/
 
     let y = d3.scaleLinear()
         .rangeRound([height,0]);
@@ -210,8 +210,8 @@
         });
         console.log(data);
         // Scale the range of the data
-        //x.domain(d3.extent(data, function(d) { return d.date; }));
-        x.domain(data.map(function(d) { return d.date; }));
+        x.domain(d3.extent(data, function(d) { return d.date; }));
+        //x.domain(data.map(function(d) { return d.date; }));
         y.domain([0, d3.max(data, function(d) { return d.Average; })]);
 
         // Add the valueline path.
@@ -308,7 +308,7 @@
                 let xPosition = d3.mouse(this)[0] - 5;
                 let yPosition = d3.mouse(this)[1] - 5;
                 tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                tooltip.select("text").text(d[1]-d[0]);
+                tooltip.select("text").text("$" + d3.format(",")(d[1]-d[0]));
             });
 
         g.append("g")

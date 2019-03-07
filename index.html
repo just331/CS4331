@@ -22,6 +22,26 @@
         fill: none;
     }
 
+    .axis path,
+    .axis line {
+        fill:none;
+        stroke: grey;
+        shape-rendering: crispEdges;
+    }
+
+    div.tooltip2 {
+        position: absolute;
+        text-align: center;
+        width: 60px;
+        height: 28px;
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+    }
+
     #worldMap path:hover {
         opacity: 0.7;
     }
@@ -47,18 +67,13 @@
         top: 60px;
         right: 10px;
     }
-
-    .axis path,
-    .axis line{
-        fill:none;
-        stroke: grey;
-        stroke-width: 1;
-        shape-rendering: crispEdges;
+    .bar{
+        fill: steelblue;
     }
-
     .y .tick line{
         stroke: #dddddd;
     }
+
 
     div.tooltip1 {
         color: #222;
@@ -70,21 +85,15 @@
         opacity: 0.9;
         position: absolute;
     }
-    div.tooltip2 {
-        position: absolute;
-        text-align: center;
-        width: 60px;
-        height: 28px;
-        padding: 2px;
-        font: 12px sans-serif;
-        background: lightsteelblue;
-        border: 0px;
-        border-radius: 8px;
-        pointer-events: none;
+    .tooltip{
+        text-anchor: middle;
+        font-family: sans-serif;
+        font-size: 13px;
+        font-weight: bold;
+        fill:black;
     }
 </style>
 <body>
-
 
 <div id="lineChart" title="Average Value in Exports Per Year (U.S. Dollars)">
     <svg id="line" width="600" height="400">
@@ -165,10 +174,6 @@
     // Set the ranges
     let x = d3.scaleTime()
         .range([0, width]);
-    /*let x = d3.scaleBand()
-       .rangeRound([0, width-margin.left -margin.right])
-       .paddingInner(0.05)
-       .align(0.1);*/
 
     let y = d3.scaleLinear()
         .rangeRound([height,0]);
@@ -199,6 +204,7 @@
         .append("g")
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
+
 
     // Get the data
     d3.csv("export_average.csv", function(error, data) {
@@ -231,7 +237,7 @@
                 div.transition()
                     .duration(200)
                     .style("opacity", .9);
-                div .html(formatTime(d.date) + "<br/>"  + d.Average)
+                div	.html(formatTime(d.date) + "<br/>"  + d.Average)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             })
@@ -245,131 +251,288 @@
         svg.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x));
+            .call(xAxis);
 
         // Add the Y Axis
         svg.append("g")
             .attr("class", "y axis")
-            .call(yAxis)
+            .call(yAxis);
 
     });
 
-    // create the svg for the stacked bar graph
-    let svg2 = d3.select("#stacked"),
-        marginBar = {topb: 20, rightb: 20, bottomb: 30, leftb: 40},
-        widthBar = +svg2.attr("width") - marginBar.leftb - marginBar.rightb,
-        heightBar = +svg2.attr("height") - marginBar.topb - marginBar.bottomb,
-        g = svg2.append("g").attr("transform", "translate(" + marginBar.leftb + "," + marginBar.topb + ")");
 
-    // set x scale
-    let xBar = d3.scaleBand()
-        .rangeRound([0, widthBar-marginBar.leftb -marginBar.rightb])
+    // Create the stacked bar chart
+
+    var marginBar = {topb: 20, rightb: 20, bottomb: 30, leftb: 40},
+      widthBar = 1225 - marginBar.leftb - marginBar.rightb,
+      heightBar = 825 - marginBar.topb - marginBar.bottomb;
+
+    var xBar = d3.scaleBand()
+        .rangeRound([0, widthBar])
         .paddingInner(0.05)
         .align(0.1);
 
-    // set y scale
-    let yBar = d3.scaleLinear()
-        .rangeRound([heightBar, 0]);
+    var yBar = d3.scaleLinear()
+      .rangeRound([heightBar, 0]);
 
-    // set the colors
-    let z = d3.scaleOrdinal(d3.schemeCategory20b);
+    var color = d3.scaleOrdinal(d3.schemeCategory20b);
 
-    // read in the data from csv file
-    d3.csv("testExports2.csv", function(d, i, columns){
-        for (i=1, t=0; i<columns.length;++i) t += d[columns[i]] = +d[columns[i]];
-        d.total = t;
-        return d;
-    }, function (error, data) {
-        if (error) throw error;
+    var xAxisBar = d3.axisBottom()
+      .scale(xBar);
 
-        let keys = data.columns.slice(1);
+    var yAxisBar = d3.axisLeft()
+      .scale(yBar)
+      .tickFormat(d3.format(".2s"));
 
-        //data.sort(function(a, b) { return b.total - a.total; });
-        xBar.domain(data.map(function(d) { return d.date; }));
-        yBar.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
-        z.domain(keys);
+    var svg2 = d3.select("#stacked").append("svg")
+      .attr("width", widthBar + marginBar.leftb + marginBar.rightb)
+      .attr("height", heightBar + marginBar.topb + marginBar.bottomb)
+      .append("g")
+      .attr("transform", "translate(" + marginBar.leftb + "," + marginBar.topb + ")");
 
-        //create the stacked bar chart w/ tooltip
-        g.append("g")
-            .selectAll("g")
-            .data(d3.stack().keys(keys)(data))
-            .enter().append("g")
-            .attr("fill", function(d) { return z(d.key); })
-            .selectAll("rect")
-            .data(function(d) { return d; })
-            .enter().append("rect")
-            .attr("x", function(d) { return xBar(d.data.date); })
-            .attr("y", function(d) { return yBar(d[1]); })
-            .attr("height", function(d) { return yBar(d[0]) - yBar(d[1]); })
-            .attr("width", xBar.bandwidth())
-            .on("mouseover", function() { tooltip.style("display", null); })
-            .on("mouseout", function() { tooltip.style("display", "none"); })
-            .on("mousemove", function(d) {
-                let xPosition = d3.mouse(this)[0] - 5;
-                let yPosition = d3.mouse(this)[1] - 5;
-                tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                tooltip.select("text").text("$" + d3.format(",")(d[1]-d[0]));
-            });
+    var active_link = "0"; // to control legend selections and hover
+    var legendClicked; // to control legend selections
+    var legendClassArray = []; // store legend classes to select bars in plotSingle()
+    var legendClassArray_orig = []; // orig (with spaces)
+    var sortDescending; // if true, bars are sorted by height in descending order
+    var restoreXFlag = false; // restore order of bars back to original
 
-        g.append("g")
-            .attr("class", "axis")
-            .attr("transform", "translate(0," + heightBar + ")")
-            .call(d3.axisBottom(xBar));
+       // load the data
+  d3.csv("testExports2.csv", function(error, data) {
+      if (error) throw error;
 
-        g.append("g")
-            .attr("class", "axis")
-            .call(d3.axisLeft(yBar).ticks(null, "s"))
-            .append("text")
-            .attr("x", 2)
-            .attr("y", yBar(yBar.ticks().pop()) + 0.5)
-            .attr("dy", "0.32em")
-            .attr("fill", "#000")
-            .attr("font-weight", "bold")
-            .attr("text-anchor", "start")
-            .text("Value in $");
+      color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
 
-        // create the legend with country names
-        let legend = g.append("g")
-            .attr("class", "legend1")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", 10)
-            .attr("text-anchor", "end")
-            .selectAll("g")
-            .data(keys.slice(10,55))
-            .enter().append("g")
-            .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+      data.forEach(function(d) {
+          var mydate = d.date;
+          var y0 = 0;
+          d.country = color.domain().map(function(name) {
+              return {
+                  mydate:mydate,
+                  name: name,
+                  y0: y0,
+                  y1: y0 += +d[name],
+                  value: d[name],
+                  y_corrected: 0
+              };
+          });
+          d.total = d.country[d.country.length - 1].y1;
 
-        legend.append("rect")
-            .attr("x", widthBar - 5)
-            .attr("width", 19)
-            .attr("height", 19)
-            .attr("fill", z);
+      });
 
-        legend.append("text")
-            .attr("x", widthBar - 10)
-            .attr("y", 9.5)
-            .attr("dy", "0.32em")
-            .text(function(d) { return d; });
+      xBar.domain(data.map(function(d) { return d.date; }));
+      yBar.domain([0, d3.max(data, function(d) { return d.total; })]);
 
-    });
+      svg2.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + heightBar + ")")
+          .call(xAxisBar);
 
-    // Prep the tooltip bits, initial display is hidden
-    let tooltip = svg2.append("g")
-        .attr("class", "tooltip")
-        .style("display", "none");
+      svg2.append("g")
+          .attr("class", "y axis")
+          .call(yAxisBar)
+          .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end");
 
-    tooltip.append("rect")
-        .attr("width", 60)
-        .attr("height", 20)
-        .attr("fill", "white")
-        .style("opacity", 0.5);
+      var country = svg2.selectAll(".country")
+          .data(data)
+          .enter().append("g")
+          .attr("class", "g")
+          .attr("transform", function(d) { return "translate(" + "0" + ",0)"; });
 
-    tooltip.append("text")
-        .attr("x", 30)
-        .attr("dy", "1.2em")
-        .style("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("font-weight", "bold");
+
+
+      var height_diff = 0;  //height discrepancy when calculating h based on data vs y(d.y0) - y(d.y1)
+      country.selectAll("rect")
+          .data(function(d) {
+              return d.country;
+          })
+          .enter().append("rect")
+          .attr("width", xBar.bandwidth())
+          .attr("y", function(d) {
+              height_diff = height_diff + yBar(d.y0) - yBar(d.y1) - (yBar(0) - yBar(d.value));
+              y_corrected = yBar(d.y1) + height_diff;
+              d.y_corrected = y_corrected; //store in d for later use in restorePlot()
+              if (d.name === "Zimbabwe") height_diff = 0; //reset for next update after
+              return y_corrected;
+          })
+          .attr("x",function(d) { return xBar(d.mydate)})
+          .attr("height", function(d) { return yBar(0) - yBar(d.value); })
+          .attr("class", function(d) {
+              classLabel = d.name.replace(/\s/g, ''); //remove spaces
+              return "bars class" + classLabel;
+          })
+          .style("fill", function(d) { return color(d.name); });
+
+      country.selectAll("rect")
+          .on("mouseover", function(d){
+              var delta = d.y1 - d.y0;
+              var xPos = parseFloat(d3.select(this).attr("x"));
+              var yPos = parseFloat(d3.select(this).attr("y"));
+              var height = parseFloat(d3.select(this).attr("height"));
+              d3.select(this).attr("stroke","blue").attr("stroke-width",0.8);
+              svg2.append("text")
+                  .attr("x",xPos)
+                  .attr("y",yPos +height/2)
+                  .attr("class","tooltip")
+                  .text(d.name +": "+ d3.format(",")(delta));
+
+              })
+              .on("mouseout",function(){
+                  svg2.select(".tooltip").remove();
+                  d3.select(this).attr("stroke","pink").attr("stroke-width",0.2);
+
+              });
+
+
+          // create the legend filled w/ country names
+          var legend = svg2.selectAll(".legend")
+              .data(color.domain().slice())
+              .enter().append("g")
+              .attr("class", function (d) {
+                  legendClassArray.push(d.replace(/\s/g, '')); //remove spaces
+                  legendClassArray_orig.push(d);
+                  return "legend";
+              })
+              .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+
+          legend.append("rect")
+              .attr("x", widthBar - 1)
+              .attr("width", 15)
+              .attr("height", 15)
+              .style("fill", color)
+              .attr("id", function (d, i) {
+                  return "id" + d.replace(/\s/g, '');
+              })
+              .on("mouseover",function(){
+                  if (active_link === "0") d3.select(this).style("cursor", "pointer");
+                  else {
+                      if (active_link.split("class").pop() === this.id.split("id").pop()) {
+                          d3.select(this).style("cursor", "pointer");
+                      } else d3.select(this).style("cursor", "auto");
+                  }
+              })
+              .on("click",function(d){
+                  if (active_link === "0") { //nothing selected, turn on this selection
+                      d3.select(this)
+                          .style("stroke", "black")
+                          .style("stroke-width", 2);
+
+                      active_link = this.id.split("id").pop();
+                      plotSingle(this);
+
+                      //gray out the others
+                      for (i = 0; i < legendClassArray.length; i++) {
+                          if (legendClassArray[i] != active_link) {
+                              d3.select("#id" + legendClassArray[i])
+                                  .style("opacity", 0.5);
+                          }
+                      }
+
+                      //enable sort checkbox
+
+                  } else { //deactivate
+                      if (active_link === this.id.split("id").pop()) {//active square selected; turn it OFF
+                          d3.select(this)
+                              .style("stroke", "none");
+
+                          //restore remaining boxes to normal opacity
+                          for (i = 0; i < legendClassArray.length; i++) {
+                              d3.select("#id" + legendClassArray[i])
+                                  .style("opacity", 1);
+                          }
+
+                          restorePlot(d);
+                          active_link = "0"; //reset
+                      }
+
+                  }
+
+              });
+
+          legend.append("text")
+              .attr("x", widthBar - 5)
+              .attr("y", 9.5)
+              .attr("dy", ".35em")
+              .style("text-anchor", "end")
+              .text(function(d) { return d; });
+
+          // restore graph after a single selection
+          function restorePlot(d) {
+              //restore graph after a single selection
+              d3.selectAll(".bars:not(.class" + class_keep + ")")
+                  .transition()
+                  .duration(2000)
+                  .delay(function() {
+                      if (restoreXFlag) return 3000;
+                      else return 750;
+                  })
+                  .attr("width", xBar.bandwidth()) //restore bar width
+                  .style("opacity", 1);
+
+              //translate bars back up to original y-posn
+              d3.selectAll(".class" + class_keep)
+                  .attr("x", function(d) { return xBar(d.mydate); })
+                  .transition()
+                  .duration(2000)
+                  .delay(function () {
+                      if (restoreXFlag) return 2000; //bars have to be restored to orig posn
+                      else return 0;
+                  })
+                  .attr("y", function(d) {
+                      //return y(d.y1); //not exactly correct since not based on raw data value
+                      return d.y_corrected;
+                  });
+
+              //reset
+              restoreXFlag = false;
+
+          }
+
+          // plot only a single legend selection
+          function plotSingle(d) {
+
+              class_keep = d.id.split("id").pop();
+              idx = legendClassArray.indexOf(class_keep);
+
+              //erase all but selected bars by setting opacity to 0
+              d3.selectAll(".bars:not(.class" + class_keep + ")")
+                  .transition()
+                  .duration(1000)
+                  .attr("width", 0) // use because svg has no zindex to hide bars so can't select visible bar underneath
+                  .style("opacity", 0);
+
+              var country = d3.selectAll(".g");
+
+              country.nodes().forEach(function(d, i) {
+                  var nodes = d.childNodes;
+                  //get height and y posn of base bar and selected bar
+                  h_keep = d3.select(nodes[idx]).attr("height");
+                  y_keep = d3.select(nodes[idx]).attr("y");
+
+                  h_base = d3.select(nodes[0]).attr("height");
+                  y_base = d3.select(nodes[0]).attr("y");
+
+                  h_shift = h_keep - h_base;
+                  y_new = y_base - h_shift;
+
+                  d3.select(nodes[idx])
+                      .attr("y", y_new);
+
+
+
+              });
+
+
+          }
+
+
+
+      });
 
 </script>
 </body>

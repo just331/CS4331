@@ -263,7 +263,7 @@
 
     // Create the stacked bar chart
 
-    var marginBar = {topb: 20, rightb: 100, bottomb: 30, leftb: 40},
+    var marginBar = {topb: 20, rightb: 130, bottomb: 30, leftb: 40},
       widthBar = 1200 - marginBar.leftb - marginBar.rightb,
       heightBar = 825 - marginBar.topb - marginBar.bottomb;
 
@@ -404,7 +404,7 @@
         legendClassArray_orig = legendClassArray_orig.reverse();
 
           legend.append("rect")
-              .attr("x", widthBar +90)
+              .attr("x", widthBar +115)
               .attr("width", 10)
               .attr("height", 10)
               .style("fill", color)
@@ -458,7 +458,7 @@
               });
 
           legend.append("text")
-              .attr("x", widthBar + 85)
+              .attr("x", widthBar + 110)
               .attr("y", 5.5)
               .attr("dy", ".35em")
               .style("text-anchor", "end")

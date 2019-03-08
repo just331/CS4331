@@ -9,8 +9,10 @@ This application provides several means to analyze the data [Retrieved at: https
 http://nisat.prio.org/Trade-Database/Researchers-Database/]
 . The main feature of this visualization is the stacked bar graph of every country that The United States has exported to
 during the time frame, along with tooltip that allows a user to hover over each slice in a bar to see the value that a 
-country imported. Another visualization is a line chart that shows the average value (in U.S. Dollars) that was exported 
-in a given year for all countries.
+country imported. The user is also able to click on a country, on the legend, and the stacked chart will convert to only 
+showing the clicked country. Clicking the selected country will revert the chart back to displaying all countries.
+Another visualization is a line chart that shows the average value (in U.S. Dollars) that was exported 
+in a given year for all countries. 
 
 
 ### Peak of 1995
